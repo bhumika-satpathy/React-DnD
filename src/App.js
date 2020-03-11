@@ -5,6 +5,7 @@ import './App.css'
 import columnDesign from './columnDesign'
 import onDragEnd from './onDragEnd'
 import itemsFromBackend from './componentsBackend'
+import axios from "axios";
 
 const columnsFromBackend = {
   [uuid()]: {
@@ -19,6 +20,12 @@ const columnsFromBackend = {
 
 const Modal = (props) => {
   const {handleClose,popUp,removed} = props;
+  let params;
+  console.log(removed);
+  if(Object.keys(removed).length===0){
+    return null;
+  }
+  params=removed.componentTemplate.parameters;
   const showHideClassName = popUp?"modal display-block":"modal display-none";
   return(
     <div className={showHideClassName}>
@@ -30,7 +37,17 @@ const Modal = (props) => {
 
            <label>Component Description</label>
            <input type="text" defaultValue={removed.componentDescription} 
-           onChange={(event)=>{removed.componentDescription=event.target.value}}/>
+           onChange={(event)=>{removed.componentDescription=event.target.value}}/>          
+
+           {Object.keys(params).map((element)=>{
+             return(
+               <div>
+                  <label>Component {element}</label>
+                  <input type="text" onChange={(event)=>params[element]=event.target.value}></input> 
+                </div>
+             )
+           })}
+
          </form>
         <button type="button" onClick={handleClose}>
           close
@@ -42,12 +59,10 @@ const Modal = (props) => {
 
 function App() {
   const [removed,setRemoved]=useState({});
-  const [generatedPayload,setGeneratedPayload]=useState({});
-  const [draggedComponentName,setDraggedComponentName]=useState('');
+  let [generatedPayload,setGeneratedPayload]=useState({});
+  
   const [popUp,setPopUp] = useState(false);
   const [columns, setColumns] = useState(Object.entries(columnsFromBackend));
-  console.log(columns)
-  console.log('Columns----->>',columns);
   return (
     <div className="overall">
       <div className="main">
@@ -55,13 +70,20 @@ function App() {
         <DragDropContext onDragEnd={result => {
           setPopUp(true);
           const removedItem=onDragEnd(result, columns, setColumns);
+          removedItem.type=removedItem.componentName;
           setRemoved(removedItem);
-          setDraggedComponentName(removedItem.name);
           }}> 
-
-          <Modal handleClose = {()=>setPopUp(false)} popUp={popUp} removed={removed} />
-
-          {generatedPayload[draggedComponentName].push({name:removed.name,params:removed.params})}
+       
+          <Modal handleClose = {()=>{
+            if(!generatedPayload[removed.type]){
+              generatedPayload[removed.type]=[];
+              generatedPayload[removed.type].push({name:removed.componentName,params:removed.componentTemplate.parameters});
+            }
+            else
+              generatedPayload[removed.type].push({name:removed.componentName,params:removed.componentTemplate.parameters});
+              setPopUp(false)
+              console.log('yayayayayayaya',removed.componentTemplate.parameters)
+          }} popUp={popUp} removed={removed}/>
 
           {columnDesign(columns,0,"componentsAlignment")}
           {columnDesign(columns,1,"areaAlignment")}
@@ -69,7 +91,16 @@ function App() {
         </DragDropContext>
 
       </div>
-      <button type="button">GENERATE</button>
+      <button type="button" onClick={async()=>{
+        
+        console.log('Pay load',generatedPayload);
+        
+        axios({
+        method:'post',
+        url: 'http://localhost:8080/user/generateIaC',
+        data:
+         generatedPayload
+      })}}>GENERATE</button>
     </div>
   );
 }
