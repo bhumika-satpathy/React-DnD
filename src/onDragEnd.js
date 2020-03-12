@@ -56,17 +56,19 @@ const onDragEnd = (result, columns, setColumns) => {
       }
       x=removed;
     } else {
-      const column = columns[source.droppableId];
-      const copiedItems = [...column.items];
+      console.log('resultttttttttttt',result)
+      const column = columns.filter((column)=>column[0]===source.droppableId);
+      const copiedItems = [...column[0][1].items];
       const [removed] = copiedItems.splice(source.index, 1);
       copiedItems.splice(destination.index, 0, removed);
-      setColumns({
-        ...columns,
-        [source.droppableId]: {
-          ...column,
-          items: copiedItems
-        }
-      });
+      // setColumns([
+      //   source.droppableId,
+      //   {
+      //     name:column[0][1].name,
+      //     items:copiedItems
+      //   }
+      //  ]);
+      //  console.log('sourceeeeeeee 2',columns)
       x=removed
     }
     return x; 

@@ -29,21 +29,21 @@ const Modal = (props) => {
   const showHideClassName = popUp?"modal display-block":"modal display-none";
   return(
     <div className={showHideClassName}>
-      <div className="modal-main">
+      <div className="modal-main" >
          <form>
            <label>Component Name</label>
            <input type="text" defaultValue={removed.componentName} 
-           onChange={(event)=>{removed.componentName=event.target.value}}/>
+           onChange={(event)=>{removed.componentName=event.target.value}} key={removed.componentName}/>
 
            <label>Component Description</label>
            <input type="text" defaultValue={removed.componentDescription} 
-           onChange={(event)=>{removed.componentDescription=event.target.value}}/>          
+           onChange={(event)=>{removed.componentDescription=event.target.value}} key={removed.componentDescription}/>          
 
            {Object.keys(params).map((element)=>{
              return(
                <div>
                   <label>Component {element}</label>
-                  <input type="text" onChange={(event)=>params[element]=event.target.value}></input> 
+                  <input type="text" onChange={(event)=>params[element]=event.target.value} key={params[element]}></input> 
                 </div>
              )
            })}
@@ -68,7 +68,8 @@ function App() {
       <div className="main">
 
         <DragDropContext onDragEnd={result => {
-          setPopUp(true);
+          if(result.source.droppableId===result.destination.droppableId)setPopUp(false);
+          else setPopUp(true);
           const removedItem=onDragEnd(result, columns, setColumns);
           removedItem.type=removedItem.componentName;
           setRemoved(removedItem);
